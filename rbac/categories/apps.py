@@ -1,0 +1,12 @@
+from django.apps import AppConfig
+from django.utils.translation import gettext_lazy as _
+
+
+class CategoriesConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "rbac.categories"
+    label = "categories"
+    verbose_name = _("Categories")
+
+    def ready(self):
+        pass
