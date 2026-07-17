@@ -1,5 +1,5 @@
 import strawberry
-from typing import Optional
+from typing import List, Optional
 from strawberry.file_uploads import Upload
 
 
@@ -31,4 +31,14 @@ class UserIdInput:
 @strawberry.input
 class LockUserInput:
     user_id: strawberry.ID
+    duration_minutes: int = 15
+    
+@strawberry.input
+class BulkUserIdsInput:
+    user_ids: List[strawberry.ID]
+
+
+@strawberry.input
+class BulkLockUsersInput:
+    user_ids: List[strawberry.ID]
     duration_minutes: int = 15

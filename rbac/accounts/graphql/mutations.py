@@ -5,8 +5,14 @@ from rbac.accounts.graphql.inputs import (
     AdminUpdateUserInput,
     UserIdInput,
     LockUserInput,
+    BulkUserIdsInput,
+    BulkLockUsersInput,
 )
-from rbac.accounts.graphql.payloads import UserMutationPayload
+from rbac.accounts.graphql.payloads import (
+    UserMutationPayload,
+    BulkUserActionPayload,
+    BulkActionFailure,
+)
 from rbac.core.graphql.payloads import SimpleMutationPayload
 from rbac.accounts.selectors import get_current_user
 from rbac.accounts.services import (
@@ -17,11 +23,24 @@ from rbac.accounts.services import (
     lock_user,
     unlock_user,
     force_password_reset,
+    bulk_activate_users,
+    bulk_deactivate_users,
+    bulk_delete_users,
+    bulk_lock_users,
+    bulk_unlock_users,
+    bulk_force_password_reset,
 )
 from rbac.authorization.decorators import require_owner
 from rbac.core.exceptions import ApplicationError, AppPermissionDeniedError
 from rbac.core.graphql.errors import format_application_error
 
+
+def _to_bulk_payload(result) -> BulkUserActionPayload:
+    return BulkUserActionPayload(
+        success=len(result.failed) == 0,
+        succeeded_ids=result.succeeded,
+        failed=[BulkActionFailure(user_id=f["user_id"], reason=f["reason"]) for f in result.failed],
+    )
 
 @strawberry.type
 class UserMutation:
@@ -114,3 +133,70 @@ class UserMutation:
             return SimpleMutationPayload(success=True)
         except ApplicationError as e:
             return SimpleMutationPayload(success=False, errors=[format_application_error(e)])
+        
+    @strawberry.mutation
+    @require_owner()
+    def bulk_activate_users(self, info: strawberry.Info, input: BulkUserIdsInput) -> BulkUserActionPayload:
+        current = get_current_user(info)
+        if not current or not current.company_id:
+            raise AppPermissionDeniedError("No company context.")
+        result = bulk_activate_users(user_ids=input.user_ids, company_id=str(current.company_id))
+        return _to_bulk_payload(result)
+
+    @strawberry.mutation
+    @require_owner()
+    def bulk_deactivate_users(self, info: strawberry.Info, input: BulkUserIdsInput) -> BulkUserActionPayload:
+        current = get_current_user(info)
+        if not current or not current.company_id:
+            raise AppPermissionDeniedError("No company context.")
+        result = bulk_deactivate_users(
+            user_ids=input.user_ids,
+            company_id=str(current.company_id),
+            current_user_id=current.id,
+        )
+        return _to_bulk_payload(result)
+
+    @strawberry.mutation
+    @require_owner()
+    def bulk_delete_users(self, info: strawberry.Info, input: BulkUserIdsInput) -> BulkUserActionPayload:
+        current = get_current_user(info)
+        if not current or not current.company_id:
+            raise AppPermissionDeniedError("No company context.")
+        result = bulk_delete_users(
+            user_ids=input.user_ids,
+            company_id=str(current.company_id),
+            current_user_id=current.id,
+        )
+        return _to_bulk_payload(result)
+
+    @strawberry.mutation
+    @require_owner()
+    def bulk_lock_users(self, info: strawberry.Info, input: BulkLockUsersInput) -> BulkUserActionPayload:
+        current = get_current_user(info)
+        if not current or not current.company_id:
+            raise AppPermissionDeniedError("No company context.")
+        result = bulk_lock_users(
+            user_ids=input.user_ids,
+            company_id=str(current.company_id),
+            current_user_id=current.id,
+            duration_minutes=input.duration_minutes,
+        )
+        return _to_bulk_payload(result)
+
+    @strawberry.mutation
+    @require_owner()
+    def bulk_unlock_users(self, info: strawberry.Info, input: BulkUserIdsInput) -> BulkUserActionPayload:
+        current = get_current_user(info)
+        if not current or not current.company_id:
+            raise AppPermissionDeniedError("No company context.")
+        result = bulk_unlock_users(user_ids=input.user_ids, company_id=str(current.company_id))
+        return _to_bulk_payload(result)
+
+    @strawberry.mutation
+    @require_owner()
+    def bulk_force_password_reset(self, info: strawberry.Info, input: BulkUserIdsInput) -> BulkUserActionPayload:
+        current = get_current_user(info)
+        if not current or not current.company_id:
+            raise AppPermissionDeniedError("No company context.")
+        result = bulk_force_password_reset(user_ids=input.user_ids, company_id=str(current.company_id))
+        return _to_bulk_payload(result)

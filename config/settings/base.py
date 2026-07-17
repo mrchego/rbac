@@ -333,7 +333,7 @@ SOCIALACCOUNT_FORMS = {"signup": "rbac.accounts.forms.UserSocialSignupForm"}
 
 ALLOWED_HOSTS = env.list(
     "DJANGO_ALLOWED_HOSTS",
-    default=["localhost", "127.0.0.1", ".localhost"],
+    default=["localhost", "127.0.0.1", ".localhost", "admin.localhost"],
 )
 
 CSRF_TRUSTED_ORIGINS = [
