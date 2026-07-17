@@ -29,6 +29,8 @@ from rbac.accounts.services import (
     bulk_lock_users,
     bulk_unlock_users,
     bulk_force_password_reset,
+    restore_user,
+    bulk_restore_users,
 )
 from rbac.authorization.decorators import require_owner
 from rbac.core.exceptions import ApplicationError, AppPermissionDeniedError
@@ -199,4 +201,22 @@ class UserMutation:
         if not current or not current.company_id:
             raise AppPermissionDeniedError("No company context.")
         result = bulk_force_password_reset(user_ids=input.user_ids, company_id=str(current.company_id))
+        return _to_bulk_payload(result)
+    
+    @strawberry.mutation
+    @require_owner()
+    def restore_user(self, info: strawberry.Info, input: UserIdInput) -> SimpleMutationPayload:
+        try:
+            restore_user(user_id=input.user_id)
+            return SimpleMutationPayload(success=True)
+        except ApplicationError as e:
+            return SimpleMutationPayload(success=False, errors=[format_application_error(e)])
+
+    @strawberry.mutation
+    @require_owner()
+    def bulk_restore_users(self, info: strawberry.Info, input: BulkUserIdsInput) -> BulkUserActionPayload:
+        current = get_current_user(info)
+        if not current or not current.company_id:
+            raise AppPermissionDeniedError("No company context.")
+        result = bulk_restore_users(user_ids=input.user_ids, company_id=str(current.company_id))
         return _to_bulk_payload(result)

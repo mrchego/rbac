@@ -12,6 +12,8 @@ from .bulk_delete_users import bulk_delete_users
 from .bulk_lock_users import bulk_lock_users
 from .bulk_unlock_users import bulk_unlock_users
 from .bulk_force_password_reset import bulk_force_password_reset
+from .restore_user import restore_user
+from .bulk_restore_users import bulk_restore_users
 __all__ = [
     "create_user",
     "update_user",
@@ -26,5 +28,7 @@ __all__ = [
     "bulk_delete_users",
     "bulk_lock_users",
     "bulk_unlock_users",
-    "bulk_force_password_reset"
+    "bulk_force_password_reset",
+    "restore_user",
+    "bulk_restore_users",
 ]
