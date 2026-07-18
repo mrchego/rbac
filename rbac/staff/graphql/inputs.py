@@ -26,3 +26,9 @@ class AcceptInvitationInput:
 class SetStaffLoginAccessInput:
     user_id: strawberry.ID
     can_login: bool
+     
+     
+@strawberry.input
+class PromoteStaffToLoginInput:
+    user_id: strawberry.ID
+    role_id: strawberry.ID

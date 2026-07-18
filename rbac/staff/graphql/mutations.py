@@ -5,6 +5,7 @@ from rbac.staff.graphql.inputs import (
     RevokeInvitationInput,
     AcceptInvitationInput,
     SetStaffLoginAccessInput,
+    PromoteStaffToLoginInput,
 )
 from rbac.staff.graphql.payloads import (
     InvitationMutationPayload,
@@ -18,6 +19,7 @@ from rbac.staff.services import (
 from rbac.staff.workflows import (
     accept_invitation as accept_invitation_action,
     invite_staff as invite_staff_action,
+    promote_staff_to_login as promote_staff_to_login_action,
 )
 from rbac.accounts.selectors import get_current_user
 from rbac.authorization.decorators import require_owner
@@ -101,3 +103,25 @@ class StaffMutation:
             return AcceptInvitationPayload(
                 success=False, errors=[format_application_error(e)]
             )
+            
+    @strawberry.mutation
+    @require_owner()
+    def promote_staff_to_login(self, info: strawberry.Info, input: PromoteStaffToLoginInput) -> InvitationMutationPayload:
+        current = get_current_user(info)
+        if not current or not current.company_id:
+            raise AppPermissionDeniedError("No company context.")
+        try:
+            role = Role.objects.filter(pk=input.role_id, company=current.company).first()
+            if not role:
+                raise ApplicationError("Role not found.", code="ROLE_NOT_FOUND")
+
+            _, invitation = promote_staff_to_login_action(
+                user_id=input.user_id,
+                company=current.company,
+                role=role,
+                invited_by=current,
+                request=info.context.request,
+            )
+            return InvitationMutationPayload(success=True, invitation=invitation)
+        except ApplicationError as e:
+            return InvitationMutationPayload(success=False, errors=[format_application_error(e)])

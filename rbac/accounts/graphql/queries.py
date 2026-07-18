@@ -20,8 +20,8 @@ class UserQuery:
 
     @strawberry.field
     @require_owner()
-    def users(self, info: strawberry.Info, is_active: Optional[bool] = None) -> List[UserType]:
+    def users(self, info: strawberry.Info, is_active: Optional[bool] = None, can_login: Optional[bool] = None) -> List[UserType]:
         current = get_current_user(info)
         if not current or not current.company_id:
             raise AppPermissionDeniedError("No company context.")
-        return list(list_users(company_id=str(current.company_id), is_active=is_active))
+        return list(list_users(company_id=str(current.company_id), is_active=is_active, can_login=can_login))
