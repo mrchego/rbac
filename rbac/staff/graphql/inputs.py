@@ -1,5 +1,5 @@
 import strawberry
-from typing import Optional
+from typing import List, Optional
 
 
 @strawberry.input
@@ -32,3 +32,17 @@ class SetStaffLoginAccessInput:
 class PromoteStaffToLoginInput:
     user_id: strawberry.ID
     role_id: strawberry.ID
+    
+@strawberry.input
+class ResendInvitationInput:
+    invitation_id: strawberry.ID
+
+
+@strawberry.input
+class BulkRevokeInvitationsInput:
+    invitation_ids: List[strawberry.ID]
+
+
+@strawberry.input
+class DemoteStaffFromLoginInput:
+    user_id: strawberry.ID

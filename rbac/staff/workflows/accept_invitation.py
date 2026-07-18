@@ -12,6 +12,9 @@ def accept_invitation(*, token, new_password):
     except Invitation.DoesNotExist:
         raise ApplicationError("Invalid or expired invitation token.", code=ErrorCode.INVALID_TOKEN)
 
+    if invitation.is_expired:
+        raise ApplicationError("This invitation has expired. Ask an admin to resend it.", code=ErrorCode.INVALID_TOKEN)
+
     user = invitation.company.users.filter(email=invitation.email).first()
     if not user:
         raise ApplicationError("User no longer exists.", code=ErrorCode.USER_NOT_FOUND)
