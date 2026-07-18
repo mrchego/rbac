@@ -1,5 +1,5 @@
 import strawberry
-from typing import Optional
+from typing import List, Optional
 from decimal import Decimal
 
 
@@ -23,3 +23,13 @@ class UpdateProductInput:
 @strawberry.input
 class DeleteProductInput:
     product_id: strawberry.ID
+    
+    
+@strawberry.input
+class ProductIdInput:
+    product_id: strawberry.ID
+
+
+@strawberry.input
+class BulkProductIdsInput:
+    product_ids: List[strawberry.ID]
