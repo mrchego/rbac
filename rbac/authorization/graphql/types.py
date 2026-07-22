@@ -3,6 +3,7 @@ import strawberry_django
 from strawberry import auto
 from typing import List
 
+from rbac.accounts.graphql.types import UserType
 from rbac.authorization.models import Permission, Role, UserPermissionOverride
 
 @strawberry_django.type(Permission)
@@ -28,6 +29,11 @@ class RoleType:
     @strawberry.field
     def staff_count(self) -> int:
         return self.user_roles.count()
+    
+    @strawberry.field
+    def assigned_users(self) -> List["UserType"]:
+        from rbac.accounts.graphql.types import UserType
+        return [ur.user for ur in self.user_roles.select_related("user").all()]
 
 
 @strawberry_django.type(UserPermissionOverride)

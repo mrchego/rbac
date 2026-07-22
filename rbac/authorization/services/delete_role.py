@@ -4,8 +4,8 @@ from rbac.core.exceptions import ApplicationError, ErrorCode
 
 
 @transaction.atomic
-def delete_role(*, role_id):
-    role = Role.objects.filter(pk=role_id).first()
+def delete_role(*, role_id, company_id):
+    role = Role.objects.filter(pk=role_id, company_id=company_id).first()
     if not role:
         raise ApplicationError("Role not found.", code=ErrorCode.ROLE_NOT_FOUND)
 

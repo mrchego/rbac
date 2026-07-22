@@ -45,3 +45,20 @@ class SetPermissionOverrideInput:
 class ClearPermissionOverrideInput:
     user_id: strawberry.ID
     permission_codename: str
+    
+@strawberry.input
+class CloneRoleInput:
+    role_id: strawberry.ID
+    new_name: str
+
+
+@strawberry.input
+class BulkAssignRoleInput:
+    user_ids: List[strawberry.ID]
+    role_id: strawberry.ID
+
+
+@strawberry.input
+class BulkRemoveRoleInput:
+    user_ids: List[strawberry.ID]
+    role_id: strawberry.ID

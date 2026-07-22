@@ -23,9 +23,10 @@ class UserAdmin(BaseModelAdmin, auth_admin.UserAdmin):
     search_fields = ['email', 'first_name', 'last_name', 'phone']
     ordering = ['-created_at']
     date_hierarchy = 'created_at'
+    readonly_fields = ['id']  # UUID pk isn't shown by default; useful for GraphQL debugging/support
 
     fieldsets = (
-        (None, {"fields": ("email", "password")}),
+        (None, {"fields": ("id", "email", "password")}),
         (_("Personal info"), {"fields": ("first_name", "last_name", "phone", "avatar")}),
         (_("Organization"), {"fields": ("company",)}),
         (_("Security & Login"), {"fields": ("can_login", "password_reset_required", "locked_until", "failed_login_attempts")}),
@@ -36,7 +37,7 @@ class UserAdmin(BaseModelAdmin, auth_admin.UserAdmin):
                     "is_active",
                     "is_staff",
                     "is_superuser",
-                    # REMOVED: "groups", "user_permissions" 
+                    # REMOVED: "groups", "user_permissions"
                 ),
             },
         ),

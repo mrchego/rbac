@@ -1,16 +1,29 @@
 from django.db import transaction, IntegrityError
 from rbac.authorization.models.permission import Permission
 from rbac.authorization.models.role import Role
-from rbac.core.exceptions import AppValidationError, BusinessRuleViolationError, ErrorCode
+from rbac.core.exceptions import (
+    AppValidationError,
+    BusinessRuleViolationError,
+    ErrorCode,
+)
 
 
 @transaction.atomic
 def create_role(*, company, name, permission_codenames=None, is_default=False):
     name = name.strip()
     if len(name) < 2:
-        raise AppValidationError("Role name must be at least 2 characters long.", field="name")
+        raise AppValidationError(
+            "Role name must be at least 2 characters long.", field="name"
+        )
 
-    permissions = list(Permission.objects.filter(codename__in=permission_codenames or []))
+    permission_codenames = permission_codenames or []
+    permissions = list(Permission.objects.filter(codename__in=permission_codenames))
+    unknown = set(permission_codenames) - {p.codename for p in permissions}
+    if unknown:
+        raise AppValidationError(
+            f"Unknown permission codename(s): {sorted(unknown)}",
+            field="permission_codenames",
+        )
 
     try:
         role = Role.objects.create(company=company, name=name, is_default=is_default)

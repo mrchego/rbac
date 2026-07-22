@@ -6,17 +6,14 @@ from rbac.core.exceptions import ApplicationError, ErrorCode
 
 
 @transaction.atomic
-def assign_role(*, user_id, role_id):
+def assign_role(*, user_id, role_id, company_id):
     user = get_user(user_id=user_id)
-    if not user:
+    if not user or str(user.company_id) != str(company_id):
         raise ApplicationError("User not found.", code=ErrorCode.USER_NOT_FOUND)
 
-    role = Role.objects.filter(pk=role_id).first()
+    role = Role.objects.filter(pk=role_id, company_id=company_id).first()
     if not role:
         raise ApplicationError("Role not found.", code=ErrorCode.ROLE_NOT_FOUND)
-
-    if role.company_id != user.company_id:
-        raise ApplicationError("Role does not belong to the user's company.", code=ErrorCode.PERMISSION_DENIED)
 
     try:
         UserRole.objects.create(user=user, role=role)

@@ -3,6 +3,7 @@ from typing import Optional, List
 
 from rbac.products.graphql.types import ProductType
 from rbac.core.graphql.errors import MutationError
+from rbac.core.graphql.payloads import BulkActionFailure, BulkActionPayload  # noqa: F401
 
 
 @strawberry.type
@@ -12,14 +13,6 @@ class ProductMutationPayload:
     errors: Optional[List[MutationError]] = None
 
 
-@strawberry.type
-class ProductBulkActionFailure:
-    product_id: strawberry.ID
-    reason: str
-
-
-@strawberry.type
-class BulkProductActionPayload:
-    success: bool
-    succeeded_ids: List[strawberry.ID]
-    failed: List[ProductBulkActionFailure]
+# Kept as aliases so existing imports keep working.
+ProductBulkActionFailure = BulkActionFailure
+BulkProductActionPayload = BulkActionPayload

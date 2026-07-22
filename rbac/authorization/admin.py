@@ -71,9 +71,10 @@ class RoleAdmin(BaseModelAdmin):
     ordering = ["company", "name"]
     filter_horizontal = ["permissions"]
     inlines = [UserRoleInline]
+    readonly_fields = ['id']
 
     fieldsets = (
-        (None, {"fields": ("company", "name", "is_default")}),
+        (None, {"fields": ("id","company", "name", "is_default")}),
         ("Permissions", {"fields": ("permissions",)}),
     )
 

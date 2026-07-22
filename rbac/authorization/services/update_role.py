@@ -5,8 +5,8 @@ from rbac.core.exceptions import ApplicationError, AppValidationError, ErrorCode
 
 
 @transaction.atomic
-def update_role(*, role_id, name=None, permission_codenames=None, is_default=None):
-    role = Role.objects.filter(pk=role_id).first()
+def update_role(*, role_id, company_id, name=None, permission_codenames=None, is_default=None):
+    role = Role.objects.filter(pk=role_id, company_id=company_id).first()
     if not role:
         raise ApplicationError("Role not found.", code=ErrorCode.ROLE_NOT_FOUND)
 
@@ -23,6 +23,11 @@ def update_role(*, role_id, name=None, permission_codenames=None, is_default=Non
 
     if permission_codenames is not None:
         permissions = list(Permission.objects.filter(codename__in=permission_codenames))
+        unknown = set(permission_codenames) - {p.codename for p in permissions}
+        if unknown:
+            raise AppValidationError(
+                f"Unknown permission codename(s): {sorted(unknown)}", field="permission_codenames"
+            )
         role.permissions.set(permissions)
 
     return role
