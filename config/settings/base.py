@@ -93,6 +93,7 @@ LOCAL_APPS = [
     "rbac.products.apps.ProductsConfig",
     "rbac.categories.apps.CategoriesConfig",
     "rbac.orders.apps.OrdersConfig",
+    "rbac.dashboard.apps.DashboardConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

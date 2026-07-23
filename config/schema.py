@@ -32,11 +32,14 @@ from rbac.categories.graphql.mutations import CategoryMutation
 from rbac.orders.graphql.queries import OrderQuery
 from rbac.orders.graphql.mutations import OrderMutation
 
+# dashboard
+from rbac.dashboard.graphql.queries import DashboardQuery
 
 @strawberry.type
 class Query(
     UserQuery,
     RoleQuery,
+    DashboardQuery,
     CompanyQuery,
     SessionQuery,
     StaffQuery,
