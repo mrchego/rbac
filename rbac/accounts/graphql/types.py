@@ -23,6 +23,7 @@ class UserType:
     is_active: auto
     is_staff: auto
     is_superuser: auto
+    is_founder: auto
     password_reset_required: auto
     last_password_change: auto
     failed_login_attempts: auto

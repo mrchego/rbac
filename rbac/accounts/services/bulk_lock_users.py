@@ -1,7 +1,10 @@
+# accounts/services/bulk_lock_users.py
 from django.db import transaction
 from django.utils import timezone
 from rbac.accounts.selectors import get_users_by_ids
 from rbac.accounts.services.bulk_result import BulkActionResult
+from rbac.accounts.services.ownership_guard import assert_not_last_owner
+from rbac.core.exceptions import ApplicationError
 
 
 @transaction.atomic
@@ -18,6 +21,13 @@ def bulk_lock_users(*, user_ids, company_id, current_user_id, duration_minutes=1
         if uid == current_user_id:
             result.add_failure(uid, "You cannot lock your own account.")
             continue
+
+        try:
+            assert_not_last_owner(user=user, company_id=company_id, action="locked")
+        except ApplicationError as e:
+            result.add_failure(uid, e.message)
+            continue
+
         user.locked_until = locked_until
         user.save(update_fields=["locked_until"])
         result.add_success(uid)

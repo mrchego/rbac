@@ -59,6 +59,15 @@ class User(UUIDMixin, TimeStampedMixin, AbstractUser):
         blank=True,
         null=True,
     )
+    
+    is_founder = models.BooleanField(
+        default=False,
+        help_text=_(
+            "The user who originally registered the company. Founders cannot be "
+            "deactivated, locked, deleted, or demoted from ownership by anyone, "
+            "including other owners."
+        ),
+    )
 
     # ------------------------------------------------------------------
     # Organization

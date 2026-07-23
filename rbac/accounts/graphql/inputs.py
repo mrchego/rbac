@@ -42,3 +42,15 @@ class BulkUserIdsInput:
 class BulkLockUsersInput:
     user_ids: List[strawberry.ID]
     duration_minutes: int = 15
+    
+    
+# accounts/graphql/inputs.py — add these
+
+@strawberry.input
+class PromoteToOwnerInput:
+    user_id: strawberry.ID
+
+
+@strawberry.input
+class DemoteOwnerInput:
+    user_id: strawberry.ID

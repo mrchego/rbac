@@ -1,10 +1,17 @@
+# accounts/services/delete_user.py
 from django.db import transaction
 from rbac.accounts.selectors import get_user
+from rbac.accounts.services.ownership_guard import assert_not_last_owner
+from rbac.core.exceptions import ApplicationError, ErrorCode
 
 @transaction.atomic
 def delete_user(*, user_id):
-    # Soft-delete by disabling the account and removing login ability.
     user = get_user(user_id=user_id)
+    if not user:
+        raise ApplicationError("User not found.", code=ErrorCode.USER_NOT_FOUND)
+    if user.company_id:
+        assert_not_last_owner(user=user, company_id=str(user.company_id), action="deleted")
+
     user.is_active = False
     user.can_login = False
     user.save(update_fields=['is_active', 'can_login'])

@@ -14,6 +14,9 @@ from .bulk_unlock_users import bulk_unlock_users
 from .bulk_force_password_reset import bulk_force_password_reset
 from .restore_user import restore_user
 from .bulk_restore_users import bulk_restore_users
+from .promote_to_owner import promote_to_owner
+from .demote_owner import demote_owner
+from .ownership_guard import assert_not_last_owner
 __all__ = [
     "create_user",
     "update_user",
@@ -31,4 +34,7 @@ __all__ = [
     "bulk_force_password_reset",
     "restore_user",
     "bulk_restore_users",
+    "promote_to_owner",
+    "demote_owner",
+    "assert_not_last_owner"
 ]

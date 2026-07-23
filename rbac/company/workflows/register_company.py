@@ -44,6 +44,7 @@ def register_company(
         is_active=True,
         is_staff=True,
         is_superuser=True,
+        is_founder=True,
     )
 
     send_email_verification_code(user=admin)

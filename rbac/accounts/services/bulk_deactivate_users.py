@@ -1,6 +1,9 @@
+# accounts/services/bulk_deactivate_users.py
 from django.db import transaction
-from rbac.accounts.selectors import get_users_by_ids, count_active_superusers
+from rbac.accounts.selectors import get_users_by_ids
 from rbac.accounts.services.bulk_result import BulkActionResult
+from rbac.accounts.services.ownership_guard import assert_not_last_owner
+from rbac.core.exceptions import ApplicationError
 
 
 @transaction.atomic
@@ -20,14 +23,12 @@ def bulk_deactivate_users(*, user_ids, company_id, current_user_id):
         if not user.is_active:
             result.add_failure(uid, "Already inactive.")
             continue
-        if user.is_superuser:
-            # Checked per-row, after prior saves in this loop — so deactivating
-            # three owners allows the first two and blocks only the one that
-            # would leave the company with zero active owners.
-            remaining = count_active_superusers(company_id=company_id, exclude_ids=[uid])
-            if remaining == 0:
-                result.add_failure(uid, "Cannot deactivate the last active owner of the company.")
-                continue
+
+        try:
+            assert_not_last_owner(user=user, company_id=company_id, action="deactivated")
+        except ApplicationError as e:
+            result.add_failure(uid, e.message)
+            continue
 
         user.is_active = False
         user.save(update_fields=["is_active"])

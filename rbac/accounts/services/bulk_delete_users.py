@@ -1,6 +1,9 @@
+# accounts/services/bulk_delete_users.py
 from django.db import transaction
 from rbac.accounts.selectors import get_users_by_ids
 from rbac.accounts.services.bulk_result import BulkActionResult
+from rbac.accounts.services.ownership_guard import assert_not_last_owner
+from rbac.core.exceptions import ApplicationError
 
 
 @transaction.atomic
@@ -17,11 +20,14 @@ def bulk_delete_users(*, user_ids, company_id, current_user_id):
         if uid == current_user_id:
             result.add_failure(uid, "You cannot delete your own account.")
             continue
-        if user.is_superuser:
-            result.add_failure(uid, "Owner accounts cannot be bulk-deleted.")
-            continue
         if not user.is_active and not user.can_login:
             result.add_failure(uid, "Already deleted.")
+            continue
+
+        try:
+            assert_not_last_owner(user=user, company_id=company_id, action="deleted")
+        except ApplicationError as e:
+            result.add_failure(uid, e.message)
             continue
 
         user.is_active = False

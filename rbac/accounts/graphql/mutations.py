@@ -7,6 +7,8 @@ from rbac.accounts.graphql.inputs import (
     LockUserInput,
     BulkUserIdsInput,
     BulkLockUsersInput,
+    PromoteToOwnerInput,   
+    DemoteOwnerInput,
 )
 from rbac.accounts.graphql.payloads import UserMutationPayload
 from rbac.core.graphql.payloads import BulkActionPayload, to_bulk_payload
@@ -29,6 +31,8 @@ from rbac.accounts.services import (
     bulk_force_password_reset,
     restore_user,
     bulk_restore_users,
+    promote_to_owner as promote_to_owner_action,   # new
+    demote_owner as demote_owner_action, 
 )
 from rbac.authorization.decorators import require_owner
 from rbac.core.exceptions import ApplicationError, AppPermissionDeniedError
@@ -273,3 +277,24 @@ class UserMutation:
             user_ids=input.user_ids, company_id=str(current.company_id)
         )
         return to_bulk_payload(result)
+    
+    @strawberry.mutation
+    @require_owner()
+    def promote_to_owner(self, info: strawberry.Info, input: PromoteToOwnerInput) -> UserMutationPayload:
+        try:
+            user = promote_to_owner_action(user_id=input.user_id)
+            return UserMutationPayload(success=True, user=user)
+        except ApplicationError as e:
+            return UserMutationPayload(success=False, errors=[format_application_error(e)])
+
+    @strawberry.mutation
+    @require_owner()
+    def demote_owner(self, info: strawberry.Info, input: DemoteOwnerInput) -> UserMutationPayload:
+        current = get_current_user(info)
+        if not current or not current.company_id:
+            raise AppPermissionDeniedError("No company context.")
+        try:
+            user = demote_owner_action(user_id=input.user_id, company_id=str(current.company_id))
+            return UserMutationPayload(success=True, user=user)
+        except ApplicationError as e:
+            return UserMutationPayload(success=False, errors=[format_application_error(e)])

@@ -8,13 +8,11 @@ from rbac.core.validators.phone import validate_phone_number
 
 @transaction.atomic
 def create_user(*, email, first_name, last_name, password=None, phone=None, avatar=None, company=None,
-                can_login=True, is_active=True, is_staff=False, is_superuser=False):
-    # Validate early
+                can_login=True, is_active=True, is_staff=False, is_superuser=False, is_founder=False):
     validate_email(email)
     if phone:
         validate_phone_number(phone)
-    
-    # Only validate password if it's provided (staff invites have None)
+
     if password is not None:
         try:
             validate_password_strength(password)
@@ -32,6 +30,7 @@ def create_user(*, email, first_name, last_name, password=None, phone=None, avat
         is_active=is_active,
         is_staff=is_staff,
         is_superuser=is_superuser,
+        is_founder=is_founder,
     )
     
     # If password is provided, hash it. Otherwise, set an unusable password.
