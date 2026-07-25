@@ -1,10 +1,9 @@
-from django.conf import settings
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
+from rbac.core.tasks import send_email_task
+from rbac.identity.constants import VERIFICATION_CODE_EXPIRY_MINUTES
 from rbac.identity.models import VerificationCode
 from rbac.identity.services.generate_verification_code import generate_verification_code
-from rbac.identity.constants import VERIFICATION_CODE_EXPIRY_MINUTES
 
 
 def send_password_reset_code(*, user):
@@ -19,10 +18,9 @@ def send_password_reset_code(*, user):
             "purpose_label": "password reset",
         },
     )
-    send_mail(
+    send_email_task.delay(
         subject="Your password reset code",
         message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
     )
     return True

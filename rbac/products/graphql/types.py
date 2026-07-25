@@ -1,5 +1,9 @@
+from typing import List
+
+import strawberry
 import strawberry_django
 from strawberry import auto
+
 from rbac.products.models import Product
 
 
@@ -12,3 +16,9 @@ class ProductType:
     is_active: auto
     created_at: auto
     updated_at: auto
+
+
+@strawberry.type
+class ProductConnection:
+    items: List[ProductType]
+    total_count: int

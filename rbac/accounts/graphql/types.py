@@ -1,7 +1,8 @@
+from typing import List, Optional
+
 import strawberry
 import strawberry_django
 from strawberry import auto
-from typing import Optional
 
 from rbac.accounts.models import User
 
@@ -62,3 +63,11 @@ class UserType:
 class CompanyBasicType:
     id: strawberry.ID
     name: str
+
+
+@strawberry.type
+class UserConnection:
+    """Page of users plus the total row count, so the frontend can render
+    'Page X of Y' without ever fetching the full table."""
+    items: List[UserType]
+    total_count: int

@@ -1,12 +1,14 @@
 from django.db import transaction
 from django.utils import timezone
+
 from rbac.accounts.selectors import get_user
 from rbac.authorization.models import UserRole
-from rbac.staff.models import Invitation
+from rbac.authorization.selectors.get_user_permissions import invalidate_user_permissions_cache
+from rbac.core.exceptions import ApplicationError, ErrorCode
 from rbac.staff.constants import INVITATION_EXPIRY_DAYS
+from rbac.staff.models import Invitation
 from rbac.staff.selectors import get_pending_invitation_for_email
 from rbac.staff.services.send_invitation_email import send_invitation_email
-from rbac.core.exceptions import ApplicationError, ErrorCode
 
 
 @transaction.atomic
@@ -27,6 +29,7 @@ def promote_staff_to_login(*, user_id, company, role, invited_by, request):
         )
 
     UserRole.objects.create(user=user, role=role)
+    invalidate_user_permissions_cache(user_id=user.id)
 
     invitation = Invitation.objects.create(
         email=user.email,

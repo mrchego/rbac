@@ -1,8 +1,10 @@
 from django.db import transaction
+
 from rbac.accounts.selectors import get_users_by_ids
-from rbac.core.services.bulk_result import BulkActionResult
-from rbac.authorization.selectors.get_role import get_role
 from rbac.authorization.models.user_role import UserRole
+from rbac.authorization.selectors.get_role import get_role
+from rbac.authorization.selectors.get_user_permissions import invalidate_user_permissions_cache
+from rbac.core.services.bulk_result import BulkActionResult
 
 
 @transaction.atomic
@@ -22,6 +24,7 @@ def bulk_assign_role(*, user_ids, role_id, company_id):
         uid = str(user.id)
         _, created = UserRole.objects.get_or_create(user=user, role=role)
         if created:
+            invalidate_user_permissions_cache(user_id=user.id)
             result.add_success(uid)
         else:
             result.add_failure(uid, "Already assigned.")

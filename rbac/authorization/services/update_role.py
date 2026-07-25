@@ -1,6 +1,8 @@
 from django.db import transaction
+
 from rbac.authorization.models.permission import Permission
 from rbac.authorization.models.role import Role
+from rbac.authorization.selectors.get_user_permissions import invalidate_role_permissions_cache
 from rbac.core.exceptions import ApplicationError, AppValidationError, ErrorCode
 
 
@@ -29,5 +31,8 @@ def update_role(*, role_id, company_id, name=None, permission_codenames=None, is
                 f"Unknown permission codename(s): {sorted(unknown)}", field="permission_codenames"
             )
         role.permissions.set(permissions)
+        # Every user currently holding this role has a stale cached
+        # permission list now that the role's own permission set changed.
+        invalidate_role_permissions_cache(role=role)
 
     return role

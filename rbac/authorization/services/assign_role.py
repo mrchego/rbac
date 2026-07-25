@@ -1,7 +1,9 @@
-from django.db import transaction, IntegrityError
+from django.db import IntegrityError, transaction
+
 from rbac.accounts.selectors import get_user
 from rbac.authorization.models.role import Role
 from rbac.authorization.models.user_role import UserRole
+from rbac.authorization.selectors.get_user_permissions import invalidate_user_permissions_cache
 from rbac.core.exceptions import ApplicationError, ErrorCode
 
 
@@ -20,4 +22,5 @@ def assign_role(*, user_id, role_id, company_id):
     except IntegrityError:
         pass  # already assigned — idempotent, not an error
 
+    invalidate_user_permissions_cache(user_id=user.id)
     return True

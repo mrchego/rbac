@@ -1,8 +1,10 @@
 from django.db import transaction
+
 from rbac.accounts.selectors import get_users_by_ids
-from rbac.core.services.bulk_result import BulkActionResult
-from rbac.authorization.selectors.get_role import get_role
 from rbac.authorization.models.user_role import UserRole
+from rbac.authorization.selectors.get_role import get_role
+from rbac.authorization.selectors.get_user_permissions import invalidate_user_permissions_cache
+from rbac.core.services.bulk_result import BulkActionResult
 
 
 @transaction.atomic
@@ -22,6 +24,7 @@ def bulk_remove_role(*, user_ids, role_id, company_id):
         uid = str(user.id)
         deleted, _ = UserRole.objects.filter(user=user, role=role).delete()
         if deleted:
+            invalidate_user_permissions_cache(user_id=user.id)
             result.add_success(uid)
         else:
             result.add_failure(uid, "Role was not assigned.")

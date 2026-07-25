@@ -1,7 +1,10 @@
+from typing import List
+
 import strawberry
 import strawberry_django
 from strawberry import auto
 
+from rbac.accounts.graphql.types import UserType
 from rbac.staff.models import Invitation
 
 
@@ -25,3 +28,15 @@ class InvitationType:
     @strawberry.field
     def is_expired(self) -> bool:
         return self.is_expired
+
+
+@strawberry.type
+class InvitationConnection:
+    items: List[InvitationType]
+    total_count: int
+
+
+@strawberry.type
+class StaffMemberConnection:
+    items: List[UserType]
+    total_count: int

@@ -1,8 +1,10 @@
 from django.db import transaction
+
 from rbac.accounts.selectors import get_user
 from rbac.authorization.models import UserRole
-from rbac.staff.selectors import get_pending_invitation_for_email
+from rbac.authorization.selectors.get_user_permissions import invalidate_user_permissions_cache
 from rbac.core.exceptions import ApplicationError, ErrorCode
+from rbac.staff.selectors import get_pending_invitation_for_email
 
 
 @transaction.atomic
@@ -17,6 +19,7 @@ def demote_staff_from_login(*, user_id, company_id):
     UserRole.objects.filter(user=user).delete()
     user.can_login = False
     user.save(update_fields=["can_login"])
+    invalidate_user_permissions_cache(user_id=user.id)
 
     pending = get_pending_invitation_for_email(email=user.email, company_id=company_id)
     if pending:

@@ -1,16 +1,16 @@
-import strawberry
-from typing import List, Optional
+from typing import Optional
 
-from rbac.staff.graphql.types import InvitationType
-from rbac.staff.selectors import (
-    list_invitations,
-    list_staff_members,
-    count_pending_invitations,
-)
-from rbac.accounts.graphql.types import UserType
+import strawberry
+
 from rbac.accounts.selectors import get_current_user
 from rbac.authorization.decorators import require_owner
 from rbac.core.exceptions import AppPermissionDeniedError
+from rbac.staff.graphql.types import InvitationConnection, StaffMemberConnection
+from rbac.staff.selectors import (
+    count_pending_invitations,
+    list_invitations,
+    list_staff_members,
+)
 
 
 @strawberry.type
@@ -18,12 +18,19 @@ class StaffQuery:
     @strawberry.field
     @require_owner()
     def invitations(
-        self, info: strawberry.Info, used: Optional[bool] = None
-    ) -> List[InvitationType]:
+        self,
+        info: strawberry.Info,
+        used: Optional[bool] = None,
+        limit: Optional[int] = None,
+        offset: int = 0,
+    ) -> InvitationConnection:
         current = get_current_user(info)
         if not current or not current.company_id:
             raise AppPermissionDeniedError("No company context.")
-        return list(list_invitations(company_id=str(current.company_id), used=used))
+        items, total_count = list_invitations(
+            company_id=str(current.company_id), used=used, limit=limit, offset=offset
+        )
+        return InvitationConnection(items=items, total_count=total_count)
 
     @strawberry.field
     @require_owner()
@@ -36,11 +43,16 @@ class StaffQuery:
     @strawberry.field
     @require_owner()
     def staff_members(
-        self, info: strawberry.Info, can_login: Optional[bool] = None
-    ) -> List[UserType]:
+        self,
+        info: strawberry.Info,
+        can_login: Optional[bool] = None,
+        limit: Optional[int] = None,
+        offset: int = 0,
+    ) -> StaffMemberConnection:
         current = get_current_user(info)
         if not current or not current.company_id:
             raise AppPermissionDeniedError("No company context.")
-        return list(
-            list_staff_members(company_id=str(current.company_id), can_login=can_login)
+        items, total_count = list_staff_members(
+            company_id=str(current.company_id), can_login=can_login, limit=limit, offset=offset
         )
+        return StaffMemberConnection(items=items, total_count=total_count)

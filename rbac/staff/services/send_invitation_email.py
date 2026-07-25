@@ -1,6 +1,7 @@
 from django.conf import settings
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
+
+from rbac.core.tasks import send_email_task
 
 
 def send_invitation_email(*, request, invitation):
@@ -25,10 +26,11 @@ def send_invitation_email(*, request, invitation):
         {"invitation": invitation, "accept_url": accept_url},
     )
 
-    send_mail(
+    # URL building needs `request` and stays synchronous (cheap); the actual
+    # SMTP send is what was slow, so only that part moves to Celery.
+    send_email_task.delay(
         subject=subject,
         message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[invitation.email],
     )
     return True
